@@ -87,6 +87,8 @@ class PipelineExecutor:
                     topic=final_state.topic,
                     papers=final_state.papers,
                     insights=final_state.insights,
+                    graph_nodes=final_state.graph_nodes,
+                    graph_edges=final_state.graph_edges,
                     graph_summary=final_state.graph_summary,
                     report=final_state.report,
                     assets=final_state.extracted_assets,

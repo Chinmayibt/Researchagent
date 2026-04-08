@@ -16,9 +16,24 @@ export default function InsightPanel({ insights }: Props) {
   }
 
   const sections = [
-    { label: "Trends", items: insights.trends },
-    { label: "Research gaps", items: insights.gaps },
-    { label: "Contradictions", items: insights.contradictions },
+    {
+      label: "Trends",
+      items: insights.trend_items?.length
+        ? insights.trend_items
+        : insights.trends.map((text) => ({ text, supporting_papers: [] })),
+    },
+    {
+      label: "Research gaps",
+      items: insights.gap_items?.length
+        ? insights.gap_items
+        : insights.gaps.map((text) => ({ text, supporting_papers: [] })),
+    },
+    {
+      label: "Contradictions",
+      items: insights.contradiction_items?.length
+        ? insights.contradiction_items
+        : insights.contradictions.map((text) => ({ text, supporting_papers: [] })),
+    },
   ];
 
   return (
@@ -33,7 +48,26 @@ export default function InsightPanel({ insights }: Props) {
             ) : (
               <ul>
                 {section.items.map((item, i) => (
-                  <li key={`${section.label}-${i}`}>{item}</li>
+                  <li key={`${section.label}-${i}`}>
+                    <div>{item.text}</div>
+                    {item.supporting_papers?.length ? (
+                      <p className="muted">
+                        Sources:{" "}
+                        {item.supporting_papers.map((sp, idx) => (
+                          <React.Fragment key={`${sp.paper_id}-${idx}`}>
+                            {sp.url ? (
+                              <a href={sp.url} target="_blank" rel="noreferrer">
+                                {sp.title || sp.paper_id}
+                              </a>
+                            ) : (
+                              <span>{sp.title || sp.paper_id}</span>
+                            )}
+                            {idx < item.supporting_papers.length - 1 ? ", " : ""}
+                          </React.Fragment>
+                        ))}
+                      </p>
+                    ) : null}
+                  </li>
                 ))}
               </ul>
             )}

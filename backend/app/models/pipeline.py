@@ -56,11 +56,40 @@ class StructuredFact(BaseModel):
     evidence_asset_id: str | None = None
 
 
+class GraphNodeRecord(BaseModel):
+    id: str
+    label: str
+    year: int | None = None
+    score: float = 0.0
+    cluster: int = 0
+
+
+class GraphEdgeRecord(BaseModel):
+    source: str
+    target: str
+    weight: float
+    edge_type: Literal["citation", "similarity"]
+
+
+class InsightEvidence(BaseModel):
+    paper_id: str
+    title: str
+    url: str = ""
+
+
+class InsightStatement(BaseModel):
+    text: str
+    supporting_papers: list[InsightEvidence] = []
+
+
 class InsightOutput(BaseModel):
     trends: list[str] = []
     gaps: list[str] = []
     contradictions: list[str] = []
     key_papers: list[dict] = []
+    trend_items: list[InsightStatement] = []
+    gap_items: list[InsightStatement] = []
+    contradiction_items: list[InsightStatement] = []
     research_fronts: list[str] = []
     open_problems: list[str] = []
 
@@ -77,6 +106,8 @@ class PipelineResult(BaseModel):
     topic: str
     papers: list[PaperRecord]
     insights: InsightOutput
+    graph_nodes: list[GraphNodeRecord]
+    graph_edges: list[GraphEdgeRecord]
     graph_summary: dict[str, int]
     report: ReportOutput
     assets: list[ExtractedAsset]
@@ -95,6 +126,8 @@ class PipelineState(BaseModel):
     structured_facts: list[StructuredFact] = []
     insights: InsightOutput | None = None
     report: ReportOutput | None = None
+    graph_nodes: list[GraphNodeRecord] = []
+    graph_edges: list[GraphEdgeRecord] = []
     graph_summary: dict[str, int] = {}
     debug: dict[str, str] = {}
 

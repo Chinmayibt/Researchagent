@@ -47,11 +47,25 @@ export type InsightKeyPaper = {
   url: string;
 };
 
+export type InsightEvidence = {
+  paper_id: string;
+  title: string;
+  url?: string;
+};
+
+export type InsightStatement = {
+  text: string;
+  supporting_papers: InsightEvidence[];
+};
+
 export type Insights = {
   trends: string[];
   gaps: string[];
   contradictions: string[];
   key_papers: InsightKeyPaper[];
+  trend_items?: InsightStatement[];
+  gap_items?: InsightStatement[];
+  contradiction_items?: InsightStatement[];
 };
 
 export type RunResearchResponse = {
@@ -83,6 +97,8 @@ type PipelineResult = {
   topic: string;
   papers: Paper[];
   insights: Insights;
+  graph_nodes: GraphNode[];
+  graph_edges: GraphEdge[];
   graph_summary: Record<string, number>;
   report: {
     markdown: string;
@@ -153,15 +169,6 @@ export async function runResearch(payload: RunRequest): Promise<RunResearchRespo
 
   const result = await fetchJobResults(job.job_id);
 
-  const graphNodeCount = result.graph_summary?.nodes ?? 0;
-  const graphNodes: GraphNode[] = result.papers.slice(0, graphNodeCount || result.papers.length).map((paper, idx) => ({
-    id: `node-${idx}`,
-    label: paper.title,
-    year: paper.year ?? null,
-    score: paper.relevance_score,
-    cluster: idx % 6,
-  }));
-
   return {
     topic: result.topic,
     papers: result.papers,
@@ -175,8 +182,8 @@ export async function runResearch(payload: RunRequest): Promise<RunResearchRespo
         stop_reason: null,
       },
     ],
-    graph_nodes: graphNodes,
-    graph_edges: [],
+    graph_nodes: result.graph_nodes ?? [],
+    graph_edges: result.graph_edges ?? [],
     clusters: {},
     insights: result.insights,
     report_markdown: result.report.markdown,
