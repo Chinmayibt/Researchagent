@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+python-multipart
+pymupdf
+PyPDF2
+pdfplumber
+sentence-transformers
+faiss-cpu
+numpy
+edge-tts
+pydub
+requests
+groq
+TTS; python_version < "3.12"

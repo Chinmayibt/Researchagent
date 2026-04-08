@@ -8,3 +8,11 @@ frontend/dist/
 backend/reports/
 reports/
 debug-*.log
+
+# research_agent: Hugging Face / sentence-transformers cache (large binaries)
+research_agent/models/
+research_agent/temp.pdf
+research_agent/podcast.mp3
+research_agent/line_*.mp3
+research_agent/inputs.txt
+research_agent/generated_audio/
