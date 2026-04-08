@@ -1,12 +1,17 @@
 import React from "react";
+import { NavLink } from "react-router-dom";
 
-const navItems = ["Home", "Projects", "Reports", "Automation", "Settings"];
+const navItems = [
+  { label: "Home", to: "/" },
+  { label: "Reports", to: "/reports" },
+  { label: "Settings", to: "/settings" },
+];
 
 type SidebarProps = {
   active?: string;
 };
 
-export default function Sidebar({ active = "Projects" }: SidebarProps) {
+export default function Sidebar({ active = "Home" }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -19,20 +24,19 @@ export default function Sidebar({ active = "Projects" }: SidebarProps) {
 
       <nav className="sidebar-nav" aria-label="Main navigation">
         {navItems.map((item) => (
-          <button
-            key={item}
-            type="button"
-            className={`nav-item ${active === item ? "active" : ""}`}
-            aria-current={active === item ? "page" : undefined}
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) => `nav-item ${isActive || active === item.label ? "active" : ""}`}
           >
-            {item}
-          </button>
+            {item.label}
+          </NavLink>
         ))}
       </nav>
 
       <div className="sidebar-footer">
-        <p className="muted">Active project</p>
-        <p className="project-name">Ikigai Labs</p>
+        <p className="muted">Workspace mode</p>
+        <p className="project-name">Autonomous</p>
       </div>
     </aside>
   );

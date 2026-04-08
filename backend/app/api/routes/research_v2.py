@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import json
+
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 
 from app.models.pipeline import CreateJobResponse, JobStatusResponse, PipelineRequest, PipelineResult
 from app.pipeline.executor import executor
@@ -39,5 +42,20 @@ def job_results(job_id: str) -> PipelineResult:
 def job_assets(job_id: str):
     try:
         return executor.get_assets(job_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="job not found") from exc
+
+
+@router.get("/jobs/{job_id}/stream")
+def job_stream(job_id: str, since: int = 0):
+    try:
+        def event_generator():
+            for event in executor.stream_events(job_id, since_seq=since):
+                if event.get("type") == "heartbeat":
+                    yield ": heartbeat\n\n"
+                else:
+                    yield f"data: {json.dumps(event)}\n\n"
+
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="job not found") from exc

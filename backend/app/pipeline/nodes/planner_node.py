@@ -4,9 +4,11 @@ from app.models.pipeline import QueryPlan
 from app.pipeline.debug_log import dbg
 from app.pipeline.llm import ask_json
 from app.pipeline.state import PipelineStateDict
+from app.pipeline.telemetry import emit_event
 
 
 def planner_node(state: PipelineStateDict) -> PipelineStateDict:
+    emit_event(state, "planner", "Planning search strategy.")
     topic = state["topic"]
     fallback = {
         "sub_themes": [f"{topic} architecture", f"{topic} benchmarks", f"{topic} applications"],
@@ -32,4 +34,5 @@ def planner_node(state: PipelineStateDict) -> PipelineStateDict:
         data={"plan_type": type(plan).__name__, "query_count": len(plan.queries)},
     )
     # endregion
+    emit_event(state, "planner", f"Prepared {len(plan.queries)} search queries.", {"query_count": len(plan.queries)})
     return {"query_plan": plan, "status": "running"}

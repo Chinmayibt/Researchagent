@@ -12,8 +12,8 @@ export default function Topbar({ topic, onTopicChange, onSubmit, loading, canSub
   return (
     <header className="topbar">
       <div>
-        <p className="muted">Projects / Ikigai Labs</p>
-        <h1>Autonomous Research Intelligence</h1>
+        <p className="muted">Autonomous Research AI Workspace</p>
+        <h1>Enter a topic, AI does the rest</h1>
       </div>
       <div className="topbar-actions">
         <label htmlFor="topic-search" className="sr-only">

@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     max_pdf_pages_per_paper: int = Field(default=12, alias="MAX_PDF_PAGES_PER_PAPER")
     max_assets_per_paper: int = Field(default=30, alias="MAX_ASSETS_PER_PAPER")
     max_pipeline_papers: int = Field(default=40, alias="MAX_PIPELINE_PAPERS")
+    default_max_papers: int = Field(default=30, alias="DEFAULT_MAX_PAPERS")
+    default_max_iterations: int = Field(default=3, alias="DEFAULT_MAX_ITERATIONS")
     request_timeout_seconds: int = Field(default=25, alias="REQUEST_TIMEOUT_SECONDS")
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

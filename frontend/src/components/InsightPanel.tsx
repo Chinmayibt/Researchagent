@@ -29,7 +29,7 @@ export default function InsightPanel({ insights }: Props) {
         : insights.gaps.map((text) => ({ text, supporting_papers: [] })),
     },
     {
-      label: "Contradictions",
+      label: "Conflicting findings",
       items: insights.contradiction_items?.length
         ? insights.contradiction_items
         : insights.contradictions.map((text) => ({ text, supporting_papers: [] })),
@@ -89,6 +89,30 @@ export default function InsightPanel({ insights }: Props) {
               </li>
             ))}
           </ul>
+        )}
+      </section>
+      <section className="insight-block">
+        <h4>Most used methodologies</h4>
+        {insights.methodologies?.length ? (
+          <ul>
+            {insights.methodologies.map((item, idx) => (
+              <li key={`method-${idx}`}>{item}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="muted">No methodology signals yet.</p>
+        )}
+      </section>
+      <section className="insight-block">
+        <h4>Emerging approaches</h4>
+        {insights.emerging_approaches?.length ? (
+          <ul>
+            {insights.emerging_approaches.map((item, idx) => (
+              <li key={`emerge-${idx}`}>{item}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="muted">No emerging approach signals yet.</p>
         )}
       </section>
     </div>

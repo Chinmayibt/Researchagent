@@ -94,6 +94,7 @@ body {
 }
 
 .nav-item {
+  display: block;
   width: 100%;
   text-align: left;
   border: 1px solid transparent;
@@ -101,6 +102,7 @@ body {
   background: transparent;
   color: var(--text);
   padding: 10px 12px;
+  text-decoration: none;
 }
 
 .nav-item.active {
@@ -120,6 +122,7 @@ body {
 
 .workspace {
   min-width: 0;
+  grid-column: 2;
 }
 
 .topbar {
@@ -129,7 +132,7 @@ body {
   padding: var(--space-3);
   margin-bottom: var(--space-3);
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   gap: var(--space-3);
   align-items: flex-start;
 }
@@ -143,7 +146,7 @@ body {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  min-width: 420px;
+  min-width: 520px;
 }
 
 .topbar-actions input {
@@ -167,6 +170,11 @@ body {
   grid-template-columns: 1.4fr 130px 130px auto;
   gap: var(--space-2);
   align-items: end;
+}
+
+.command-row.single {
+  grid-template-columns: auto;
+  justify-content: end;
 }
 
 .kpi-grid {
@@ -248,6 +256,7 @@ button:disabled {
 }
 
 .right-panel {
+  grid-column: 3;
   height: fit-content;
   position: sticky;
   top: var(--space-3);
@@ -307,6 +316,14 @@ button:disabled {
   gap: 6px;
 }
 
+.related-papers {
+  padding: 12px;
+}
+
+.related-papers h4 {
+  margin: 0 0 8px;
+}
+
 .graph-wrap {
   height: 460px;
   border: 1px solid var(--border);
@@ -350,6 +367,53 @@ button:disabled {
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+}
+
+.paper-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-2);
+}
+
+.paper-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  background: var(--surface-soft);
+}
+
+.paper-card h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.paper-summary {
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.paper-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.report-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.report-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
 }
 
 table {

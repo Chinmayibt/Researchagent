@@ -6,6 +6,7 @@ import { GraphEdge, GraphNode } from "../services/api";
 type Props = {
   nodes: GraphNode[];
   edges: GraphEdge[];
+  onSelectNode?: (nodeId: string) => void;
 };
 
 function colorForCluster(cluster: number): string {
@@ -13,7 +14,7 @@ function colorForCluster(cluster: number): string {
   return palette[cluster % palette.length];
 }
 
-export default function GraphView({ nodes, edges }: Props) {
+export default function GraphView({ nodes, edges, onSelectNode }: Props) {
   if (!nodes.length) {
     return (
       <div className="graph-empty">
@@ -24,7 +25,7 @@ export default function GraphView({ nodes, edges }: Props) {
 
   const flowNodes = nodes.map((n, i) => ({
     id: n.id,
-    data: { label: n.label },
+    data: { label: n.label, summary: `${n.year ?? "n/a"} | score ${n.score.toFixed(2)}` },
     position: { x: (i % 8) * 220, y: Math.floor(i / 8) * 120 },
     style: {
       border: `2px solid ${colorForCluster(n.cluster)}`,
@@ -34,6 +35,7 @@ export default function GraphView({ nodes, edges }: Props) {
       fontSize: 12,
       background: "#ffffff",
     },
+    title: `${n.label} — ${n.year ?? "n/a"}`,
   }));
   const flowEdges = edges.map((e, i) => ({
     id: `e-${i}-${e.source}-${e.target}`,
@@ -48,7 +50,7 @@ export default function GraphView({ nodes, edges }: Props) {
         <h4>Knowledge Graph</h4>
         <p className="muted">Nodes are clustered by semantic similarity.</p>
       </div>
-      <ReactFlow nodes={flowNodes} edges={flowEdges} fitView>
+      <ReactFlow nodes={flowNodes} edges={flowEdges} fitView onNodeClick={(_, node) => onSelectNode?.(node.id)}>
         <Background gap={18} />
         <Controls />
       </ReactFlow>

@@ -5,6 +5,7 @@ from collections import Counter
 from app.models.pipeline import InsightEvidence, InsightOutput, InsightStatement
 from app.pipeline.llm import ask_json
 from app.pipeline.state import PipelineStateDict
+from app.pipeline.telemetry import emit_event
 
 
 def _paper_index(papers):
@@ -55,6 +56,8 @@ def _build_fallback_insights(state: PipelineStateDict, top_papers) -> InsightOut
         trends=[x.text for x in trend_items],
         gaps=[x.text for x in gap_items],
         contradictions=[x.text for x in contradiction_items],
+        methodologies=["systematic reviews", "benchmark comparisons"] if top_papers else [],
+        emerging_approaches=[key0, key1],
         trend_items=trend_items,
         gap_items=gap_items,
         contradiction_items=contradiction_items,
@@ -73,6 +76,7 @@ def _build_fallback_insights(state: PipelineStateDict, top_papers) -> InsightOut
 
 
 def insight_node(state: PipelineStateDict) -> PipelineStateDict:
+    emit_event(state, "insight", "Generating evidence-backed insights.")
     papers = state.get("papers", [])
     if not papers:
         return {"insights": InsightOutput()}
@@ -93,7 +97,7 @@ def insight_node(state: PipelineStateDict) -> PipelineStateDict:
     ]
     fallback = _build_fallback_insights(state, top)
     prompt = (
-        "Return STRICT JSON with keys trends,gaps,contradictions,research_fronts,open_problems where each of "
+        "Return STRICT JSON with keys trends,gaps,contradictions,methodologies,emerging_approaches,research_fronts,open_problems where each of "
         "trends/gaps/contradictions is an array of objects {text,supporting_papers:[{paper_id,title}]}. "
         f"Topic={state['topic']}. Top papers={paper_lines}. Facts={fact_lines}. "
         f"Keywords={', '.join([k for k, _ in tokens.most_common(12)])}"
@@ -134,6 +138,13 @@ def insight_node(state: PipelineStateDict) -> PipelineStateDict:
         contradiction_items=contradiction_items,
         research_fronts=generated.get("research_fronts", fallback.research_fronts),
         open_problems=generated.get("open_problems", fallback.open_problems),
+        methodologies=generated.get("methodologies", []),
+        emerging_approaches=generated.get("emerging_approaches", generated.get("research_fronts", fallback.research_fronts)),
         key_papers=fallback.key_papers,
+    )
+    emit_event(
+        state,
+        "insight",
+        f"Generated {len(trend_items)} trends, {len(gap_items)} gaps, and {len(contradiction_items)} conflicting findings.",
     )
     return {"insights": insights}

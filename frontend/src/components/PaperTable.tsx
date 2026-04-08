@@ -19,9 +19,17 @@ export default function PaperTable({ papers }: { papers?: Paper[] }) {
       );
   }, [papers, query, source, sort]);
 
+  const highlightIdea = (paper: Paper) => {
+    const sentence = (paper.abstract || "")
+      .split(".")
+      .map((x) => x.trim())
+      .find((x) => x.length > 20);
+    return sentence ? `${sentence}.` : "No key sentence available.";
+  };
+
   return (
     <div className="card">
-      <h3>Ranked Papers</h3>
+      <h3>Sources</h3>
       <div className="table-toolbar">
         <input
           value={query}
@@ -42,37 +50,24 @@ export default function PaperTable({ papers }: { papers?: Paper[] }) {
       {!papers?.length ? (
         <p>No papers yet.</p>
       ) : (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Year</th>
-                <th>Citations</th>
-                <th>Source</th>
-                <th>Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((p, i) => (
-                <tr key={`${p.id}-${i}`}>
-                  <td>
-                    <a href={p.url} target="_blank" rel="noreferrer">
-                      {p.title}
-                    </a>
-                  </td>
-                  <td>{p.year ?? "-"}</td>
-                  <td>{p.citation_count}</td>
-                  <td>
-                    <span className={`badge source-${p.source}`}>{p.source}</span>
-                  </td>
-                  <td>
-                    <span className="badge score">{p.relevance_score.toFixed(2)}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="paper-grid">
+          {rows.map((p, i) => (
+            <article key={`${p.id}-${i}`} className="paper-card">
+              <h4>{p.title}</h4>
+              <p className="muted">
+                {(p.authors || []).slice(0, 3).join(", ") || "Unknown authors"} | {p.year ?? "-"} | {p.citation_count} citations
+              </p>
+              <p className="paper-summary">{(p.abstract || "No summary available.").slice(0, 220)}</p>
+              <div className="paper-actions">
+                <a href={p.url} target="_blank" rel="noreferrer" className="button-link">
+                  View Paper
+                </a>
+                <button type="button" onClick={() => window.alert(highlightIdea(p))}>
+                  Highlight key idea
+                </button>
+              </div>
+            </article>
+          ))}
         </div>
       )}
     </div>

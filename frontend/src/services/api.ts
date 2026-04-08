@@ -1,7 +1,5 @@
 export type RunRequest = {
   topic: string;
-  max_papers: number;
-  max_iterations: number;
 };
 
 export type Paper = {
@@ -17,13 +15,13 @@ export type Paper = {
   relevance_score: number;
 };
 
-export type LoopLog = {
-  iteration: number;
-  query: string;
-  fetched: number;
-  accepted: number;
-  novelty_ratio: number;
-  stop_reason: string | null;
+export type PipelineEvent = {
+  seq: number;
+  ts: string;
+  stage: string;
+  level: "info" | "warn";
+  message: string;
+  meta?: Record<string, unknown>;
 };
 
 export type GraphNode = {
@@ -62,6 +60,8 @@ export type Insights = {
   trends: string[];
   gaps: string[];
   contradictions: string[];
+  methodologies?: string[];
+  emerging_approaches?: string[];
   key_papers: InsightKeyPaper[];
   trend_items?: InsightStatement[];
   gap_items?: InsightStatement[];
@@ -71,10 +71,8 @@ export type Insights = {
 export type RunResearchResponse = {
   topic: string;
   papers: Paper[];
-  loop_logs: LoopLog[];
   graph_nodes: GraphNode[];
   graph_edges: GraphEdge[];
-  clusters: Record<string, string[]>;
   insights: Insights;
   report_markdown: string;
   job_id: string;
@@ -91,6 +89,7 @@ type JobStatusResponse = {
   topic: string;
   progress: Record<string, string>;
   errors: string[];
+  last_event_seq: number;
 };
 
 type PipelineResult = {
@@ -148,13 +147,34 @@ async function fetchJobResults(jobId: string): Promise<PipelineResult> {
   return res.json();
 }
 
-export async function runResearch(payload: RunRequest): Promise<RunResearchResponse> {
+type RunResearchOptions = {
+  onEvent?: (event: PipelineEvent) => void;
+  onProgress?: (progress: Record<string, string>) => void;
+};
+
+function createEventStream(jobId: string, onEvent?: (event: PipelineEvent) => void) {
+  const stream = new EventSource(`${API_BASE}/v2/research/jobs/${jobId}/stream`);
+  stream.onmessage = (msg) => {
+    try {
+      const parsed = JSON.parse(msg.data) as PipelineEvent;
+      onEvent?.(parsed);
+    } catch {
+      // ignore malformed SSE payloads
+    }
+  };
+  return stream;
+}
+
+export async function runResearch(payload: RunRequest, opts: RunResearchOptions = {}): Promise<RunResearchResponse> {
   const job = await createResearchJob(payload);
+  const stream = createEventStream(job.job_id, opts.onEvent);
 
   let status: JobStatusResponse | null = null;
   for (let i = 0; i < 240; i++) {
     status = await fetchJobStatus(job.job_id);
+    opts.onProgress?.(status.progress ?? {});
     if (status.status === "failed") {
+      stream.close();
       throw new Error(status.errors?.join("; ") || "Pipeline failed");
     }
     if (status.status === "completed" || status.status === "partial_success") {
@@ -164,27 +184,18 @@ export async function runResearch(payload: RunRequest): Promise<RunResearchRespo
   }
 
   if (!status || (status.status !== "completed" && status.status !== "partial_success")) {
+    stream.close();
     throw new Error("Timed out waiting for research job");
   }
 
   const result = await fetchJobResults(job.job_id);
+  stream.close();
 
   return {
     topic: result.topic,
     papers: result.papers,
-    loop_logs: [
-      {
-        iteration: 1,
-        query: payload.topic,
-        fetched: result.papers.length,
-        accepted: result.papers.length,
-        novelty_ratio: 1,
-        stop_reason: null,
-      },
-    ],
     graph_nodes: result.graph_nodes ?? [],
     graph_edges: result.graph_edges ?? [],
-    clusters: {},
     insights: result.insights,
     report_markdown: result.report.markdown,
     job_id: job.job_id,

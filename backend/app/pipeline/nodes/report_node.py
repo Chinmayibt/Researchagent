@@ -5,10 +5,12 @@ from pathlib import Path
 from app.models.pipeline import ReportOutput
 from app.pipeline.llm import ask_json
 from app.pipeline.state import PipelineStateDict
+from app.pipeline.telemetry import emit_event
 from app.services.report import export_pdf
 
 
 def report_node(state: PipelineStateDict) -> PipelineStateDict:
+    emit_event(state, "report", "Generating final report.")
     insights = state.get("insights")
     if not insights:
         report = ReportOutput(markdown="# Empty report", title=state["topic"])
@@ -51,4 +53,5 @@ def report_node(state: PipelineStateDict) -> PipelineStateDict:
         asset_refs=[a.asset_id for a in state.get("extracted_assets", [])[:50]],
         report_uri=str(pdf_path),
     )
+    emit_event(state, "report", "Report generated and saved.", {"report_uri": str(pdf_path)})
     return {"report": report}

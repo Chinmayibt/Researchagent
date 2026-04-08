@@ -1,49 +1,42 @@
 import React from "react";
-import { LoopLog, RunResearchResponse } from "../../services/api";
+import { Activity } from "lucide-react";
+import { RunResearchResponse } from "../../services/api";
 
 type RightPanelProps = {
   data: RunResearchResponse | null;
   loading: boolean;
   reportLink: string | null;
+  stage: string;
+  sourcesAnalyzed: number;
+  confidence: string;
 };
 
-function latestLog(logs: LoopLog[]): LoopLog | null {
-  return logs.length ? logs[logs.length - 1] : null;
-}
-
-export default function RightPanel({ data, loading, reportLink }: RightPanelProps) {
-  const log = data ? latestLog(data.loop_logs) : null;
+export default function RightPanel({ data, loading, reportLink, stage, sourcesAnalyzed, confidence }: RightPanelProps) {
   const statusLabel = loading ? "Running" : data ? "Completed" : "Idle";
 
   return (
     <aside className="right-panel card">
-      <h2>Info</h2>
+      <h2>
+        <Activity size={16} /> Info
+      </h2>
       <div className="panel-group">
         <p className="muted">Status</p>
         <p className={`status status-${statusLabel.toLowerCase()}`}>{statusLabel}</p>
       </div>
 
       <div className="panel-group">
-        <p className="muted">Documents</p>
-        <p className="metric">{data?.papers.length ?? 0}</p>
+        <p className="muted">Processing stage</p>
+        <p className="metric">{stage || "idle"}</p>
       </div>
 
       <div className="panel-group">
-        <p className="muted">Graph</p>
-        <p className="metric">
-          {data?.graph_nodes.length ?? 0} nodes / {data?.graph_edges.length ?? 0} edges
-        </p>
+        <p className="muted">Sources analyzed</p>
+        <p className="metric">{sourcesAnalyzed}</p>
       </div>
 
       <div className="panel-group">
-        <p className="muted">Last loop</p>
-        {log ? (
-          <p className="metric">
-            Iter {log.iteration}: accepted {log.accepted} of {log.fetched}
-          </p>
-        ) : (
-          <p className="metric">No loop data yet</p>
-        )}
+        <p className="muted">Confidence</p>
+        <p className="metric">{confidence}</p>
       </div>
 
       {reportLink ? (

@@ -10,8 +10,8 @@ JobStatus = Literal["queued", "running", "completed", "partial_success", "failed
 
 class PipelineRequest(BaseModel):
     topic: str = Field(min_length=3)
-    max_papers: int = Field(default=30, ge=10, le=100)
-    max_iterations: int = Field(default=3, ge=1, le=8)
+    max_papers: int | None = Field(default=None, ge=10, le=100)
+    max_iterations: int | None = Field(default=None, ge=1, le=8)
 
 
 class QueryPlan(BaseModel):
@@ -86,6 +86,8 @@ class InsightOutput(BaseModel):
     trends: list[str] = []
     gaps: list[str] = []
     contradictions: list[str] = []
+    methodologies: list[str] = []
+    emerging_approaches: list[str] = []
     key_papers: list[dict] = []
     trend_items: list[InsightStatement] = []
     gap_items: list[InsightStatement] = []
@@ -143,4 +145,5 @@ class JobStatusResponse(BaseModel):
     topic: str
     progress: dict[str, str] = {}
     errors: list[str] = []
+    last_event_seq: int = 0
 

@@ -11,6 +11,7 @@ import pdfplumber
 from app.core.config import get_settings
 from app.models.pipeline import ExtractedAsset
 from app.pipeline.state import PipelineStateDict
+from app.pipeline.telemetry import emit_event
 
 
 def _guess_pdf_url(url: str) -> str | None:
@@ -24,6 +25,7 @@ def _guess_pdf_url(url: str) -> str | None:
 
 
 def pdf_extract_node(state: PipelineStateDict) -> PipelineStateDict:
+    emit_event(state, "pdf_extract", "Extracting text, figures, and tables from PDFs.")
     settings = get_settings()
     assets: list[ExtractedAsset] = []
 
@@ -92,4 +94,5 @@ def pdf_extract_node(state: PipelineStateDict) -> PipelineStateDict:
         if len([a for a in assets if a.paper_id == paper.id]) >= settings.max_assets_per_paper:
             continue
 
+    emit_event(state, "pdf_extract", f"Extracted {len(assets)} assets.", {"asset_count": len(assets)})
     return {"extracted_assets": assets}

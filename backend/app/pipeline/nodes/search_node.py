@@ -7,6 +7,7 @@ from app.models.pipeline import PaperRecord
 from app.pipeline.debug_log import dbg
 from app.pipeline.search_clients import fetch_arxiv, fetch_crossref, fetch_openalex
 from app.pipeline.state import PipelineStateDict
+from app.pipeline.telemetry import emit_event
 
 
 def _score(topic: str, paper: PaperRecord) -> float:
@@ -43,6 +44,7 @@ async def _run_queries(topic: str, queries: list[str]) -> list[PaperRecord]:
 
 
 def search_node(state: PipelineStateDict) -> PipelineStateDict:
+    emit_event(state, "search", "Searching OpenAlex, Crossref, and arXiv.")
     # region agent log
     qp = state.get("query_plan")
     dbg(
@@ -59,4 +61,5 @@ def search_node(state: PipelineStateDict) -> PipelineStateDict:
     # endregion
     queries = state["query_plan"].queries if state.get("query_plan") else [state["topic"]]
     papers = asyncio.run(_run_queries(state["topic"], queries))
+    emit_event(state, "search", f"Retrieved {len(papers)} unique papers.", {"sources_analyzed": len(papers)})
     return {"papers": papers[: state.get("max_papers", 30)]}

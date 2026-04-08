@@ -5,11 +5,13 @@ import math
 from app.core.config import get_settings
 from app.models.pipeline import GraphEdgeRecord, GraphNodeRecord
 from app.pipeline.state import PipelineStateDict
+from app.pipeline.telemetry import emit_event
 from app.repositories.adapters.neo4j_store import Neo4jGraphStore
 from app.services.embeddings import encode_texts
 
 
 def graph_builder_node(state: PipelineStateDict) -> PipelineStateDict:
+    emit_event(state, "graph_builder", "Building knowledge graph.")
     papers = state.get("papers", [])
     if not papers:
         return {"graph_nodes": [], "graph_edges": [], "graph_summary": {"nodes": 0, "edges": 0}}
@@ -66,6 +68,12 @@ def graph_builder_node(state: PipelineStateDict) -> PipelineStateDict:
     store.upsert_papers([p.model_dump() for p in papers])
     store.upsert_edges(
         [{"source": e.source, "target": e.target, "weight": e.weight, "kind": e.edge_type} for e in graph_edges]
+    )
+    emit_event(
+        state,
+        "graph_builder",
+        f"Built graph with {len(graph_nodes)} nodes and {len(graph_edges)} edges.",
+        {"nodes": len(graph_nodes), "edges": len(graph_edges)},
     )
     return {
         "graph_nodes": graph_nodes,

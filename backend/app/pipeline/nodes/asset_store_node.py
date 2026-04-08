@@ -4,10 +4,12 @@ import json
 
 from app.core.config import get_settings
 from app.pipeline.state import PipelineStateDict
+from app.pipeline.telemetry import emit_event
 from app.repositories.adapters.s3_store import S3ObjectStore
 
 
 def asset_store_node(state: PipelineStateDict) -> PipelineStateDict:
+    emit_event(state, "asset_store", "Saving extracted assets to object storage.")
     settings = get_settings()
     store = S3ObjectStore(
         bucket=settings.object_store_bucket,
@@ -31,4 +33,5 @@ def asset_store_node(state: PipelineStateDict) -> PipelineStateDict:
         )
         asset.storage_uri = store.put_text(key, payload, content_type="application/json")
         updated.append(asset)
+    emit_event(state, "asset_store", f"Stored {len(updated)} assets.")
     return {"extracted_assets": updated}
