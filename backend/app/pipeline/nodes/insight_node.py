@@ -35,19 +35,31 @@ def _build_fallback_insights(state: PipelineStateDict, top_papers) -> InsightOut
     if top_papers:
         trend_items.append(
             InsightStatement(
-                text=f"In {topic}, top-ranked papers emphasize {key0} and {key1}.",
+                text=(
+                    f"Across works on {topic}, the retrieved corpus repeatedly centers on '{key0}' and '{key1}'. "
+                    f"High-ranked papers tend to frame these as core levers for performance or validity. "
+                    "This pattern suggests the field is converging on a shared vocabulary even when experimental setups differ."
+                ),
                 supporting_papers=[evidence_for(p) for p in top_papers[:2]],
             )
         )
         gap_items.append(
             InsightStatement(
-                text=f"Across the collected corpus, reporting around {key1} is inconsistent across studies.",
+                text=(
+                    f"A recurring limitation is inconsistent reporting around '{key1}': datasets, splits, and baselines are not always comparable. "
+                    "Readers should treat headline numbers cautiously until protocols standardize. "
+                    "This gap matters for reproducibility and for fair comparison across institutions."
+                ),
                 supporting_papers=[evidence_for(p) for p in top_papers[:2]],
             )
         )
         contradiction_items.append(
             InsightStatement(
-                text="Papers with similar problem settings report varying gains, indicating unresolved evaluation variance.",
+                text=(
+                    "Several papers with overlapping problem settings report different gains, which often reflects "
+                    "evaluation variance (metrics, data slices, or training budgets) rather than a single 'correct' result. "
+                    "Until analyses isolate these factors, apparent disagreements may be partly methodological."
+                ),
                 supporting_papers=[evidence_for(p) for p in top_papers[:2]],
             )
         )
@@ -81,7 +93,7 @@ def insight_node(state: PipelineStateDict) -> PipelineStateDict:
     if not papers:
         return {"insights": InsightOutput()}
 
-    top = sorted(papers, key=lambda p: (p.relevance_score, p.citation_count), reverse=True)[:8]
+    top = sorted(papers, key=lambda p: (p.relevance_score, p.citation_count), reverse=True)[:15]
     tokens = Counter()
     for p in papers:
         for w in (p.title + " " + p.abstract).lower().split():
@@ -92,15 +104,32 @@ def insight_node(state: PipelineStateDict) -> PipelineStateDict:
     fact_lines = [
         f"{f.paper_id}: model={f.model_name}, dataset={f.dataset}, metric={f.metric}, value={f.value}" for f in facts[:40]
     ]
-    paper_lines = [
-        f"{p.id}|{p.title}|year={p.year}|citations={p.citation_count}|score={p.relevance_score:.3f}" for p in top
-    ]
+    paper_blocks = []
+    for p in top:
+        excerpt = (p.abstract or "").replace("\n", " ").strip()[:360]
+        paper_blocks.append(
+            f"=== paper_id={p.id} | {p.title} | year={p.year} | score={p.relevance_score:.3f} | cites={p.citation_count} ===\n{excerpt}"
+        )
+    paper_context = "\n\n".join(paper_blocks)
     fallback = _build_fallback_insights(state, top)
+    n_all = len(papers)
+    min_items_rule = (
+        "Provide at least 3 distinct objects in each of trends, gaps, and contradictions when the corpus has 5+ papers; "
+        "otherwise provide as many well-grounded items as possible (minimum 1 each)."
+        if n_all >= 5
+        else "Provide as many well-grounded items as the corpus supports (minimum 1 each for trends, gaps, contradictions)."
+    )
     prompt = (
-        "Return STRICT JSON with keys trends,gaps,contradictions,methodologies,emerging_approaches,research_fronts,open_problems where each of "
-        "trends/gaps/contradictions is an array of objects {text,supporting_papers:[{paper_id,title}]}. "
-        f"Topic={state['topic']}. Top papers={paper_lines}. Facts={fact_lines}. "
-        f"Keywords={', '.join([k for k, _ in tokens.most_common(12)])}"
+        "Return STRICT JSON with keys trends,gaps,contradictions,methodologies,emerging_approaches,research_fronts,open_problems. "
+        "Each of trends, gaps, contradictions must be an array of objects {\"text\": string, \"supporting_papers\": [{\"paper_id\", \"title\"}]}. "
+        f"{min_items_rule} "
+        'Each "text" value must be 2 to 5 complete sentences in plain language: briefly define specialized terms, '
+        "name concrete comparisons or mechanisms where possible, and state why the point matters for a reader new to the subfield. "
+        "Ground claims in the paper excerpts below and set supporting_papers to the paper_id values you rely on.\n\n"
+        f"Topic: {state['topic']}\n"
+        f"Structured facts (sample): {fact_lines}\n"
+        f"Corpus keywords: {', '.join([k for k, _ in tokens.most_common(14)])}\n\n"
+        f"PAPER EXCERPTS:\n{paper_context}"
     )
     generated = ask_json(prompt, fallback={})
     paper_lookup = _paper_index(papers)

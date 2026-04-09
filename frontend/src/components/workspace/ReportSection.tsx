@@ -10,6 +10,7 @@ type Props = {
 export default function ReportSection({ reportMarkdown, onCopyFull }: Props) {
   const sections = useMemo(() => extractReportSections(reportMarkdown ?? ""), [reportMarkdown]);
   const [copied, setCopied] = useState(false);
+  const full = (reportMarkdown ?? "").trim();
 
   const handleCopy = () => {
     onCopyFull();
@@ -21,7 +22,7 @@ export default function ReportSection({ reportMarkdown, onCopyFull }: Props) {
     <section className="card report-section" aria-label="Report preview">
       <div className="report-section__header">
         <h3>Report</h3>
-        {reportMarkdown ? (
+        {full ? (
           <button type="button" onClick={handleCopy} className="button-ghost" aria-live="polite">
             {copied ? "Copied" : "Copy full markdown"}
           </button>
@@ -46,6 +47,15 @@ export default function ReportSection({ reportMarkdown, onCopyFull }: Props) {
           <ReactMarkdown>{sections.methods || "_No methodology section detected._"}</ReactMarkdown>
         </div>
       </div>
+
+      {full ? (
+        <details className="report-full-markdown">
+          <summary className="report-full-markdown__summary">Full report (markdown)</summary>
+          <div className="markdown-body report-full-markdown__body">
+            <ReactMarkdown>{full}</ReactMarkdown>
+          </div>
+        </details>
+      ) : null}
     </section>
   );
 }

@@ -7,11 +7,9 @@ import InsightPanel from "../components/InsightPanel";
 import LiveMetricsStrip from "../components/workspace/LiveMetricsStrip";
 import PaperTable from "../components/PaperTable";
 import ReportSection from "../components/workspace/ReportSection";
-import RightPanel from "../components/layout/RightPanel";
 import Topbar from "../components/layout/Topbar";
 import WorkspaceTabs, { WorkspaceTabId } from "../components/workspace/WorkspaceTabs";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
-import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useResearchRun } from "../hooks/useResearchRun";
 import { reportUrl } from "../services/api";
 
@@ -24,8 +22,6 @@ export default function Home() {
   useDocumentTitle("Mantis · Workspace");
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const narrowRail = useMediaQuery("(max-width: 1280px)");
 
   const {
     topic,
@@ -62,15 +58,27 @@ export default function Home() {
 
   const reportHref = data?.job_id ? reportUrl(data.job_id) : null;
   const metricSources = sourcesAnalyzed || data?.papers.length || 0;
+  const runStatus = loading ? "running" : data ? "completed" : "idle";
 
   return (
-    <>
-      <main className={`workspace page-home ${!data && !loading ? "page-home--empty" : ""}`}>
-        <Topbar topic={topic} onTopicChange={setTopic} onSubmit={submit} loading={loading} canSubmit={!loading && topic.trim().length >= 3} />
+    <main className={`workspace page-home ${!data && !loading ? "page-home--empty" : ""}`}>
+        <Topbar
+          topic={topic}
+          onTopicChange={setTopic}
+          onSubmit={submit}
+          loading={loading}
+          canSubmit={!loading && topic.trim().length >= 3}
+          reportPdfHref={reportHref}
+        />
 
-        <CommandActions reportPdfHref={reportHref} error={error} />
+        <CommandActions error={error} />
 
-        <LiveMetricsStrip sourcesAnalyzed={metricSources} stageKey={stage} confidenceRaw={confidence} />
+        <LiveMetricsStrip
+          sourcesAnalyzed={metricSources}
+          stageKey={stage}
+          confidenceRaw={confidence}
+          runStatus={runStatus}
+        />
 
         <WorkspaceTabs active={tab} onChange={setTab} />
 
@@ -113,29 +121,6 @@ export default function Home() {
             />
           </section>
         ) : null}
-      </main>
-
-      {narrowRail ? (
-        <>
-          <button type="button" className="rail-toggle" onClick={() => setDrawerOpen(true)} aria-expanded={drawerOpen} aria-controls="session-rail">
-            Session
-          </button>
-          {drawerOpen ? <div className="rail-backdrop" aria-hidden onClick={() => setDrawerOpen(false)} /> : null}
-        </>
-      ) : null}
-
-      <RightPanel
-        id="session-rail"
-        data={data}
-        loading={loading}
-        reportLink={reportHref}
-        stage={stage}
-        sourcesAnalyzed={metricSources}
-        confidence={confidence}
-        floating={narrowRail}
-        drawerOpen={drawerOpen}
-        onDrawerClose={() => setDrawerOpen(false)}
-      />
-    </>
+    </main>
   );
 }

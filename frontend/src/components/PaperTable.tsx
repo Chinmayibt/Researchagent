@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { extractKeyPoints } from "../lib/extractKeyPoints";
 import { Paper } from "../services/api";
 
 export default function PaperTable({ papers }: { papers?: Paper[] }) {
@@ -20,19 +21,12 @@ export default function PaperTable({ papers }: { papers?: Paper[] }) {
       );
   }, [papers, query, source, sort]);
 
-  const highlightIdea = (paper: Paper) => {
-    const sentence = (paper.abstract || "")
-      .split(".")
-      .map((x) => x.trim())
-      .find((x) => x.length > 20);
-    return sentence ? `${sentence}.` : "No key sentence available.";
-  };
-
-  const copyKeyIdea = async (paper: Paper) => {
-    const text = highlightIdea(paper);
+  const copyKeyPoints = async (paper: Paper) => {
+    const bullets = extractKeyPoints(paper.abstract || "");
+    const text = bullets.map((b) => `• ${b}`).join("\n");
     try {
       await navigator.clipboard.writeText(text);
-      setToast(`Copied key idea: ${paper.title.slice(0, 40)}…`);
+      setToast(`Copied key points: ${paper.title.slice(0, 40)}…`);
     } catch {
       setToast("Could not copy — select and copy manually.");
     }
@@ -78,16 +72,24 @@ export default function PaperTable({ papers }: { papers?: Paper[] }) {
                 {(p.authors || []).slice(0, 3).join(", ") || "Unknown authors"} | {p.year ?? "-"} |{" "}
                 {p.citation_count} citations
               </p>
-              <p className="paper-summary">{(p.abstract || "No summary available.").slice(0, 220)}</p>
-              <p className="paper-key-idea muted" id={`key-idea-${p.id}`} hidden>
-                {highlightIdea(p)}
-              </p>
+              <p className="paper-key-points-label">Key points</p>
+              <ul className="paper-key-points-list">
+                {extractKeyPoints(p.abstract || "").map((pt, idx) => (
+                  <li key={idx}>{pt}</li>
+                ))}
+              </ul>
+              {p.abstract && p.abstract.length > 80 ? (
+                <details className="paper-abstract-details">
+                  <summary className="paper-abstract-details__summary">Full abstract</summary>
+                  <p className="paper-abstract-full muted">{p.abstract}</p>
+                </details>
+              ) : null}
               <div className="paper-actions">
                 <a href={p.url} target="_blank" rel="noreferrer" className="button-link">
                   View paper
                 </a>
-                <button type="button" onClick={() => copyKeyIdea(p)} aria-describedby={`key-idea-${p.id}`}>
-                  Copy key idea
+                <button type="button" className="button-ghost paper-copy-kp" onClick={() => copyKeyPoints(p)}>
+                  Copy key points
                 </button>
               </div>
             </article>

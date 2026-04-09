@@ -4,13 +4,25 @@ export type ReportSections = {
   methods: string;
 };
 
-const ABSTRACT_ALIASES = [/^\s*#\s*Abstract\b/im, /^\s*##\s*Abstract\b/im];
+const ABSTRACT_ALIASES = [
+  /^\s*#\s*Abstract\b/im,
+  /^\s*##\s*Abstract\b/im,
+  /^\s*##\s*Summary\b/im,
+  /^\s*##\s*Executive summary\b/im,
+];
 const FINDINGS_ALIASES = [
   /^\s*##\s*Key findings\b/im,
+  /^\s*##\s*Key finding\b/im,
+  /^\s*##\s*Main findings\b/im,
   /^\s*##\s*Trends\b/im,
   /^\s*##\s*Findings\b/im,
 ];
-const METHODS_ALIASES = [/^\s*##\s*Methodology\b/im, /^\s*##\s*Methods\b/im, /^\s*##\s*Method\b/im];
+const METHODS_ALIASES = [
+  /^\s*##\s*Methodology\b/im,
+  /^\s*##\s*Methods\b/im,
+  /^\s*##\s*Method\b/im,
+  /^\s*##\s*Methods overview\b/im,
+];
 
 function sliceAfterHeading(markdown: string, patterns: RegExp[]): string {
   for (const re of patterns) {

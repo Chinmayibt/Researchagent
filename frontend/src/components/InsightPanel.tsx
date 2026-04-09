@@ -7,6 +7,21 @@ type Props = {
 
 type TabId = "trends" | "gaps" | "conflicts" | "methods" | "emerging" | "papers";
 
+const TAB_HINTS: Record<TabId, string> = {
+  trends:
+    "Cross-paper themes: what the corpus keeps doing, measuring, or claiming most often—and why that matters for the field.",
+  gaps:
+    "Open questions or weak spots: missing comparisons, datasets, or reporting that limit what we can conclude.",
+  conflicts:
+    "Tensions or contradictions: results or claims that disagree, and the most likely methodological reasons.",
+  methods:
+    "Recurring experimental or theoretical approaches inferred from titles and abstracts in this run.",
+  emerging:
+    "Newer directions or keywords that appear as the corpus evolves (heuristic from this retrieval set).",
+  papers:
+    "Papers the pipeline ranked as especially central or well supported—open links for full context.",
+};
+
 export default function InsightPanel({ insights }: Props) {
   const [tab, setTab] = useState<TabId>("trends");
 
@@ -94,8 +109,11 @@ export default function InsightPanel({ insights }: Props) {
           </button>
         ))}
       </div>
+      <p className="insight-tab-hint" id={`insight-hint-${tab}`}>
+        {TAB_HINTS[tab]}
+      </p>
 
-      <div className="insight-tab-panel" role="tabpanel">
+      <div className="insight-tab-panel" role="tabpanel" aria-describedby={`insight-hint-${tab}`}>
         {tab === "trends" && renderStatements(sections.trends)}
         {tab === "gaps" && renderStatements(sections.gaps)}
         {tab === "conflicts" && renderStatements(sections.conflicts)}

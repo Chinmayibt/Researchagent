@@ -264,73 +264,79 @@ export default function GraphSection({ nodes, edges, papers, insights, selectedN
         </label>
       </div>
 
-      <div className="graph-filters-toolbar" role="group" aria-label="Corpus filters">
-        <label>
-          Min year
-          <input
-            type="number"
-            min={1900}
-            max={CURRENT_YEAR + 1}
-            value={minYear === "" ? "" : minYear}
-            onChange={(e) => setMinYear(e.target.value === "" ? "" : Number(e.target.value))}
-            placeholder="any"
-          />
-        </label>
-        <label>
-          Max year
-          <input
-            type="number"
-            min={1900}
-            max={CURRENT_YEAR + 1}
-            value={maxYear === "" ? "" : maxYear}
-            onChange={(e) => setMaxYear(e.target.value === "" ? "" : Number(e.target.value))}
-            placeholder="any"
-          />
-        </label>
-        <label>
-          Min citations
-          <input
-            type="number"
-            min={0}
-            value={minCitations}
-            onChange={(e) => setMinCitations(Number(e.target.value) || 0)}
-          />
-        </label>
-        <label>
-          Min relevance
-          <input
-            type="number"
-            min={0}
-            max={1}
-            step={0.05}
-            value={minRelevance}
-            onChange={(e) => setMinRelevance(Math.min(1, Math.max(0, Number(e.target.value) || 0)))}
-          />
-        </label>
-        <label>
-          Topic contains
-          <select value={topicFilter} onChange={(e) => setTopicFilter(e.target.value)}>
-            <option value="">Any</option>
-            {topicOptions.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+      <details className="graph-filters-advanced">
+        <summary className="graph-filters-advanced__summary">Corpus filters (year, citations, relevance, topic)</summary>
+        <div className="graph-filters-toolbar" role="group" aria-label="Corpus filters">
+          <label>
+            Min year
+            <input
+              type="number"
+              min={1900}
+              max={CURRENT_YEAR + 1}
+              value={minYear === "" ? "" : minYear}
+              onChange={(e) => setMinYear(e.target.value === "" ? "" : Number(e.target.value))}
+              placeholder="any"
+            />
+          </label>
+          <label>
+            Max year
+            <input
+              type="number"
+              min={1900}
+              max={CURRENT_YEAR + 1}
+              value={maxYear === "" ? "" : maxYear}
+              onChange={(e) => setMaxYear(e.target.value === "" ? "" : Number(e.target.value))}
+              placeholder="any"
+            />
+          </label>
+          <label>
+            Min citations
+            <input
+              type="number"
+              min={0}
+              value={minCitations}
+              onChange={(e) => setMinCitations(Number(e.target.value) || 0)}
+            />
+          </label>
+          <label>
+            Min relevance
+            <input
+              type="number"
+              min={0}
+              max={1}
+              step={0.05}
+              value={minRelevance}
+              onChange={(e) => setMinRelevance(Math.min(1, Math.max(0, Number(e.target.value) || 0)))}
+            />
+          </label>
+          <label>
+            Topic contains
+            <select value={topicFilter} onChange={(e) => setTopicFilter(e.target.value)}>
+              <option value="">Any</option>
+              {topicOptions.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </details>
 
-      <div className="graph-legend" aria-hidden>
-        <span>
-          <span className="graph-legend__swatch graph-legend__swatch--cite" /> Citation (arrow)
-        </span>
-        <span>
-          <span className="graph-legend__swatch graph-legend__swatch--sim" /> Similarity (thicker = stronger; dashed = weak)
-        </span>
-        <span>
-          <span className="graph-legend__swatch graph-legend__swatch--cluster" /> Themes (colored by inferred keywords — not citation strength)
-        </span>
-      </div>
+      <details className="graph-legend-wrap">
+        <summary className="graph-legend-wrap__summary">Map legend</summary>
+        <div className="graph-legend" role="note">
+          <span>
+            <span className="graph-legend__swatch graph-legend__swatch--cite" /> Citation (arrow)
+          </span>
+          <span>
+            <span className="graph-legend__swatch graph-legend__swatch--sim" /> Similarity (thicker = stronger; dashed = weak)
+          </span>
+          <span>
+            <span className="graph-legend__swatch graph-legend__swatch--cluster" /> Themes (colored by inferred keywords — not citation strength)
+          </span>
+        </div>
+      </details>
 
       {playNarrative ? (
         <p className="graph-play-narrative muted" role="status">
