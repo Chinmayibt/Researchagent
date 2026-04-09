@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import Sidebar from "./Sidebar";
 import NavLinkList from "./NavLinkList";
 
 export default function AppShell() {
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -73,7 +74,9 @@ export default function AppShell() {
       ) : null}
 
       <Sidebar />
-      <Outlet />
+      <div className="app-outlet" key={location.pathname}>
+        <Outlet />
+      </div>
     </div>
   );
 }
